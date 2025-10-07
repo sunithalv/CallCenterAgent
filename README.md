@@ -17,27 +17,34 @@ To create an AI agent capable of:
 
 ## 🧱 System Architecture
 
-               ┌─────────────────────────────┐
-               │         User Query          │
-               └──────────────┬──────────────┘
-                              │
-                  Natural Language Understanding
-                              │
-                 ┌────────────▼────────────┐
-                 │     RAG Pipeline        │
-                 ├─────────────────────────┤
-                 │ 1. Retrieve context     │
-                 │ 2. Generate response    │
-                 │ 3. Route or escalate    │
-                 └────────────┬────────────┘
-                              │
-     ┌────────────────────────┴─────────────────────────┐
-     │                                                  │┌───────────────┐ ┌──────────────┐
-│ MongoDB │ │ Qdrant │
-│ Structured DB │ │ Vector Store │
-│ (Product info)│ │ (FAQs, docs) │
-└───────────────┘ └──────────────┘
----
+Flow:
+User Query → RAG Pipeline → Databases → Response
+```
+
+
+                   ┌─────────────────────────────┐
+                   │         User Query          │
+                   └──────────────┬──────────────┘
+                                  │
+                      Natural Language Understanding
+                                  │
+                     ┌────────────▼────────────┐
+                     │     RAG Pipeline        │
+                     ├─────────────────────────┤
+                     │ 1. Retrieve context     │
+                     │ 2. Generate response    │
+                     │ 3. Route or escalate    │
+                     └────────────┬────────────┘
+                                  │
+         ┌────────────────────────┴─────────────────────────┐
+         │                                                  │
+ ┌───────────────┐                                   ┌──────────────┐
+ │   MongoDB     │                                   │   Qdrant     │
+ │ Structured DB │                                   │ Vector Store │
+ │ (Product info)│                                   │ (FAQs, docs) │
+ └───────────────┘                                   └──────────────┘
+```
+
 
 ## 🗄️ Data Architecture
 
@@ -83,9 +90,13 @@ Each document represents one product.
   "warranty": "2 years standard warranty",
   "availability": "In stock"
 }
+```
+
 ### 2️⃣ Product FAQs (Qdrant Collection)
 
+
 Each entry represents one question-answer pair related to a product.
+```json
 {
   "id": "faq_P001_1",
   "vector": [0.12, 0.45, ...],
@@ -95,6 +106,7 @@ Each entry represents one question-answer pair related to a product.
     "answer": "The battery lasts up to 10 hours on a full charge depending on usage."
   }
 }
+```
 
 ### ⚙️ Recommended Tech Stack
 | Component   | Technology                                                     |
@@ -110,49 +122,52 @@ Each entry represents one question-answer pair related to a product.
 
 ### 🧰 Setup Guide
 1. Clone the Repository
-```
+
+```bash
 git clone https://github.com/<your-username>/ai-callcenter-agent.git
 cd ai-callcenter-agent
 ```
+
+
 2. Install Dependencies
-```
+
+```bash
 pip install -r requirements.txt
 ```
-3. Environment Variables
 
-Create a .env file:
-```
+3. Environment Variables:Create a .env file
+
+```bash
 OPENAI_API_KEY=<your_key>
 QDRANT_URL=<your_qdrant_url>
 MONGODB_URI=<your_mongo_uri>
 ```
-4. Populate the Databases
-
-Load product_details.json into MongoDB:
-```
+4. Populate the Databases :
+- Load product_details.json into MongoDB
+```bash
 mongoimport --db electronics --collection products --file data/product_details.json --jsonArray
 ```
-Load faqs.jsonl into Qdrant using a Python script that:
+- Load faqs.jsonl into Qdrant using a Python script that:
 
-Embeds each question/answer pair
+- Embeds each question/answer pair
 
-Inserts vector + payload into Qdrant
+- Inserts vector + payload into Qdrant
 
 5. Run the Agent
-```
+```bash
 python app.py
 ```
 ### 🧠 Agent Workflow
 
-User Query → "Is the SmartWash 7.5 fully automatic?"
+- User Query → "Is the SmartWash 7.5 fully automatic?"
 
-Retriever → Finds relevant FAQ entries in Qdrant.
+- Retriever → Finds relevant FAQ entries in Qdrant.
 
-MongoDB Query → Fetch structured product details.
+- MongoDB Query → Fetch structured product details.
 
-LLM Synthesizer → Combines both into a natural reply.
+- LLM Synthesizer → Combines both into a natural reply.
 
-Response → Delivered to user (via API, chat, or voice UI).
+- Response → Delivered to user (via API, chat, or voice UI).
 
 ### 🧩 Future Enhancements
 
@@ -165,7 +180,7 @@ Response → Delivered to user (via API, chat, or voice UI).
 🤝 Human-in-the-loop — escalate unresolved queries
 
 ### 📂 Project Structure
-
+```
 ├── data/
 │   ├── product_details.json         # Mongo-ready product data
 │   ├── faqs.jsonl                   # Qdrant-ready FAQs with metadata
@@ -177,6 +192,7 @@ Response → Delivered to user (via API, chat, or voice UI).
 ├── .env.example
 ├── requirements.txt
 └── README.md
+```
 ### 🧩 License
 
 This project is released under the Apache 2.0 License
@@ -185,4 +201,4 @@ This project is released under the Apache 2.0 License
 ### 👩‍💻 Author
 
 Sunitha L. V
-Building intelligent agentic systems with LLMs, RAG, and multimodal AI.
+
